@@ -458,7 +458,46 @@ class LiveTestCase(unittest.TestCase):
         self.api.delete_webhook(hook.id)
 
     def test_errors(self):
-        pass
+        errors = (
+            (50501, '01', '2020'),
+            (50001, '02', '2020'),
+            (50201, '03', '2020'),
+            (40103, '04', '2020'),
+            (50102, '05', '2020'),
+            (50103, '06', '2020'),
+            (40105, '07', '2020'),
+            (40101, '08', '2020'),
+            (40100, '09', '2020'),
+            (40104, '10', '2020'),
+            (50103, '11', '2020'),
+            (40001, '12', '2020'),
+            (40102, '01', '2021'),
+            (40106, '02', '2021'),
+            (40201, '03', '2021'),
+            (50300, '04', '2021'),
+            (40202, '05', '2021'),
+            (50502, '06', '2021'),
+            (40301, '07', '2021'),
+            (40401, '08', '2021'),
+            (40402, '09', '2021'),
+            (40403, '10', '2021'),
+            (50104, '11', '2021'),
+            (50105, '12', '2021'),
+            (50600, '01', '2022'),
+            (50002, '02', '2022'),
+        )
+
+        for code, month, year in errors:
+            data = self.call_bridge('5105105105105100', '123', '3000',
+                exp_month=month, exp_year=year)
+            token = data['transaction']['identification']['uniqueId']
+
+            try:
+                self.api.new_transaction(amount=2000, token=token, holder='John Doe')
+                raise self.failureException('PaymillError not raised')
+            except BaseException as e:
+                self.assertTrue(isinstance(e, PaymillError))
+                self.assertEqual(e.args[1], code)
 
 
 if __name__ == '__main__':

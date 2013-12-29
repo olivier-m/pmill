@@ -370,16 +370,22 @@ class Paymill(object):
             json_data = json.load(e)
             if 'error' in json_data:
                 err_data = json_data['error']
+            if 'data' in json_data:
+                err_data = json_data['data']
+                code = err_data.get('response_code', code)
         except:
             pass
 
+        msg = '{0}'.format(e)
         if code in ERRORS:
-            raise PaymillError(code, ERRORS[code], err_data)
+            msg = ERRORS[code]
+        elif code in DETAILED_ERRORS:
+            msg = DETAILED_ERRORS[code]
 
         if code // 100 == 5:
-            raise PaymillError(code, ERRORS[500], err_data)
+            msg = ERRORS[500]
 
-        raise PaymillError(e.getcode(), '{0}'.format(e), err_data)
+        raise PaymillError(code, msg, err_data)
 
     def _prepare_call(self, endpoint, params, method, headers):
         opener = build_opener(HTTPSHandler, HTTPDefaultErrorHandler, HTTPErrorProcessor)
